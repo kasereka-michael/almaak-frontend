@@ -1,4 +1,4 @@
-// src/components/QuotationForm/FormActions.jsx
+// src/components/InvoiceForm/FormActions.jsx
 import React from 'react';
 
 const FormActions = ({ loading, isEditMode, navigate }) => (
@@ -6,7 +6,7 @@ const FormActions = ({ loading, isEditMode, navigate }) => (
   <div className="mt-8 flex justify-end space-x-3">
     <button
       type="button"
-      onClick={() => navigate('/quotations')}
+      onClick={() => navigate('/Invoices')}
       className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
     >
       Cancel
@@ -37,9 +37,9 @@ const FormActions = ({ loading, isEditMode, navigate }) => (
           }
         </span>
       ) : isEditMode ? (
-        'Update Quotation'
+        'Update Invoice'
       ) : (
-        'Create Quotation'
+        'Create Invoice'
       )}
 
     </button>

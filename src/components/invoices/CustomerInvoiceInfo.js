@@ -1,4 +1,4 @@
-// src/components/QuotationForm/CustomerInfo.jsx
+// src/components/InvoiceForm/CustomerInfo.jsx
 import React from 'react';
 
 const CustomerInfo = ({ formData, customers, handleCustomerChange }) => (
@@ -23,10 +23,6 @@ const CustomerInfo = ({ formData, customers, handleCustomerChange }) => (
           className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >
 
-          {
-           
-          
-          console.log("here i am as customer :: ", customers)}
 
           <option value="">Select Customer</option>
           {customers.map((customer) => (

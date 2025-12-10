@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const QuotationPreviewModal = ({ quotation, isOpen, onClose, loading, error }) => {
+const InvoicePreviewModal = ({ Invoice, isOpen, onClose, loading, error }) => {
   if (!isOpen) return null;
 
   return (
@@ -10,7 +10,7 @@ const QuotationPreviewModal = ({ quotation, isOpen, onClose, loading, error }) =
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">
-            Quotation Preview: {quotation?.quotationId || 'N/A'}
+            Invoice Preview: {Invoice?.invoiceId || 'N/A'}
           </h2>
           <button
             onClick={onClose}
@@ -48,64 +48,64 @@ const QuotationPreviewModal = ({ quotation, isOpen, onClose, loading, error }) =
           </div>
         )}
 
-        {/* Quotation Content */}
-        {!loading && !error && quotation && (
+        {/* Invoice Content */}
+        {!loading && !error && Invoice && (
           <div className="space-y-6">
             {/* Customer Info */}
             <div>
               <h3 className="text-lg font-medium text-gray-700">Customer Information</h3>
               <div className="mt-2 space-y-1">
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Name:</span> {quotation.customerName || 'N/A'}
+                  <span className="font-semibold">Name:</span> {Invoice.customerName || 'N/A'}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Email:</span> {quotation.customerEmail || 'N/A'}
+                  <span className="font-semibold">Email:</span> {Invoice.customerEmail || 'N/A'}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Address:</span> {quotation.customerAddress || 'N/A'}
+                  <span className="font-semibold">Address:</span> {Invoice.customerAddress || 'N/A'}
                 </p>
               </div>
             </div>
 
-            {/* Quotation Details */}
+            {/* Invoice Details */}
             <div>
-              <h3 className="text-lg font-medium text-gray-700">Quotation Details</h3>
+              <h3 className="text-lg font-medium text-gray-700">Invoice Details</h3>
               <div className="mt-2 space-y-1">
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Quotation ID:</span> {quotation.quotationId || 'N/A'}
+                  <span className="font-semibold">Invoice ID:</span> {Invoice.InvoiceId || 'N/A'}
                 </p>
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">Date:</span>{' '}
-                  {quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString() : 'N/A'}
+                  {Invoice.createdAt ? new Date(Invoice.createdAt).toLocaleDateString() : 'N/A'}
                 </p>
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">Valid Until:</span>{' '}
-                  {quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString() : 'N/A'}
+                  {Invoice.validUntil ? new Date(Invoice.validUntil).toLocaleDateString() : 'N/A'}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">Attention:</span> {quotation.attention || 'N/A'}
+                  <span className="font-semibold">Attention:</span> {Invoice.attention || 'N/A'}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <span className="font-semibold">RFQ:</span> {quotation.reference || 'N/A'}
+                  <span className="font-semibold">RFQ:</span> {Invoice.reference || 'N/A'}
                 </p>
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">Status:</span>{' '}
                   <span
                     className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      quotation.status?.toLowerCase() === 'accepted' ||
-                      quotation.status?.toLowerCase() === 'approved'
+                      Invoice.status?.toLowerCase() === 'accepted' ||
+                      Invoice.status?.toLowerCase() === 'approved'
                         ? 'bg-green-100 text-green-800'
-                        : quotation.status?.toLowerCase() === 'rejected'
+                        : Invoice.status?.toLowerCase() === 'rejected'
                         ? 'bg-red-100 text-red-800'
-                        : quotation.status?.toLowerCase() === 'sent' ||
-                          quotation.status?.toLowerCase() === 'pending'
+                        : Invoice.status?.toLowerCase() === 'sent' ||
+                          Invoice.status?.toLowerCase() === 'pending'
                         ? 'bg-blue-100 text-blue-800'
-                        : quotation.status?.toLowerCase() === 'expired'
+                        : Invoice.status?.toLowerCase() === 'expired'
                         ? 'bg-gray-100 text-gray-800'
                         : 'bg-yellow-100 text-yellow-800'
                     }`}
                   >
-                    {quotation.status || 'Unknown'}
+                    {Invoice.status || 'Unknown'}
                   </span>
                 </p>
               </div>
@@ -114,7 +114,7 @@ const QuotationPreviewModal = ({ quotation, isOpen, onClose, loading, error }) =
             {/* Items */}
             <div>
               <h3 className="text-lg font-medium text-gray-700">Items</h3>
-              {quotation.items && quotation.items.length > 0 ? (
+              {Invoice.items && Invoice.items.length > 0 ? (
                 <div className="mt-2 overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -134,7 +134,7 @@ const QuotationPreviewModal = ({ quotation, isOpen, onClose, loading, error }) =
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {quotation.items.map((item, index) => (
+                      {Invoice.items.map((item, index) => (
                         <tr key={index}>
                           <td className="px-4 py-2 text-sm text-gray-900">{item.description || 'N/A'}</td>
                           <td className="px-4 py-2 text-sm text-gray-900">{item.quantity || 0}</td>
@@ -160,24 +160,24 @@ const QuotationPreviewModal = ({ quotation, isOpen, onClose, loading, error }) =
               <div className="mt-2 space-y-1">
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">Subtotal:</span>{' '}
-                  ${typeof quotation.subtotal === 'number' ? quotation.subtotal.toFixed(2) : '0.00'}
+                  ${typeof Invoice.subtotal === 'number' ? Invoice.subtotal.toFixed(2) : '0.00'}
                 </p>
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">Discount:</span>{' '}
-                  ${typeof quotation.discount === 'number' ? quotation.discount.toFixed(2) : '0.00'}
+                  ${typeof Invoice.discount === 'number' ? Invoice.discount.toFixed(2) : '0.00'}
                 </p>
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">Tax:</span>{' '}
-                  ${typeof quotation.tax === 'number' ? quotation.tax.toFixed(2) : '0.00'} (
-                  {typeof quotation.taxRate === 'number' ? `${quotation.taxRate}%` : '0%'})
+                  ${typeof Invoice.tax === 'number' ? Invoice.tax.toFixed(2) : '0.00'} (
+                  {typeof Invoice.taxRate === 'number' ? `${Invoice.taxRate}%` : '0%'})
                 </p>
                 <p className="text-sm font-semibold text-gray-800">
                   <span className="font-semibold">Total Amount:</span>{' '}
-                  ${typeof quotation.totalAmount === 'number' ? quotation.totalAmount.toFixed(2) : '0.00'}
+                  ${typeof Invoice.totalAmount === 'number' ? Invoice.totalAmount.toFixed(2) : '0.00'}
                 </p>
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">Expected Income:</span>{' '}
-                  ${typeof quotation.expectedIncome === 'number' ? quotation.expectedIncome.toFixed(2) : '0.00'}
+                  ${typeof Invoice.expectedIncome === 'number' ? Invoice.expectedIncome.toFixed(2) : '0.00'}
                 </p>
               </div>
             </div>
@@ -201,12 +201,12 @@ const QuotationPreviewModal = ({ quotation, isOpen, onClose, loading, error }) =
   );
 };
 
-QuotationPreviewModal.propTypes = {
-  quotation: PropTypes.object,
+InvoicePreviewModal.propTypes = {
+  Invoice: PropTypes.object,
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   loading: PropTypes.bool,
   error: PropTypes.string,
 };
 
-export default QuotationPreviewModal;
+export default InvoicePreviewModal;

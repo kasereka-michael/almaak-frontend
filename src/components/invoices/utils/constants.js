@@ -1,14 +1,14 @@
 // src/components/InvoiceForm/utils/constants.js
 export const initialFormData = {
     id:'',
-    quotationId: '',
+    invoiceId: '',
+    quotationNumber:'',
     customerId: '',
     customerName: '',
     customerEmail: '',
     customerAddress: '',
-    reference: '',
-    attention: '',
-    validUntil: '',
+    requester: '',
+    po: '',
     status: 'draft',
     description: '',
     notes: '',

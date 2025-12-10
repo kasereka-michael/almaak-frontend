@@ -1,4 +1,4 @@
-const recalculateQuotation = (items, formData, setFormData) => {
+const recalculateInvoice = (items, formData, setFormData) => {
   // Calculate subtotal
   const subtotal = items.reduce((sum, item) => {
     const totalPrice = Number(item.totalPrice) || 0; // Convert to number, default to 0
@@ -40,7 +40,7 @@ const recalculateQuotation = (items, formData, setFormData) => {
   }, 0);
 
   // Log calculated values for debugging
-  console.log('Recalculated quotation:', {
+  console.log('Recalculated Invoice:', {
     subtotal: subtotal.toFixed(2),
     discount: discountValue.toFixed(2),
     tax: tax.toFixed(2),
@@ -67,4 +67,4 @@ const recalculateQuotation = (items, formData, setFormData) => {
   }));
 };
 
-export default recalculateQuotation;
+export default recalculateInvoice;

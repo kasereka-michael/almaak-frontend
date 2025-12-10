@@ -1,12 +1,12 @@
 import React from 'react';
-import useQuotationForm from './hooks/useQuotationForm';
-import QuotationInfo from './QuotationInfo';
-import CustomerInfo from './InvoiceInfo';
+import useInvoiceForm from './hooks/useInvoiceForm';
+import InvoiceInfo from './InvoiceInfo';
+import CustomerInfo from './CustomerInvoiceInfo';
 import ItemsTable from './ItemsTable';
 import TotalsSection from './TotalsSection';
 import FormActions from './FormActions';
 
-const QuotationForm = () => {
+const InvoiceForm = () => {
   const {
     formData,
     customers,
@@ -20,10 +20,10 @@ const QuotationForm = () => {
     handleAddItem,
     handleRemoveItem,
     handleItemChange,
-    handlePrintQuotation,
+    handlePrintInvoice,
     handleSubmit,
     navigate,
-  } = useQuotationForm();
+  } = useInvoiceForm();
 
   if (loading && isEditMode) {
     return (
@@ -37,13 +37,13 @@ const QuotationForm = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">
-          {isEditMode ? 'Edit Quotation' : 'Create New Quotation'}
+          {isEditMode ? 'Edit Invoice' : 'Create New Invoice'}
         </h1>
         {formData.items.length > 0 && (
           <div className="flex space-x-3">
             <button
               type="button"
-              onClick={() => handlePrintQuotation(true)}
+              onClick={() => handlePrintInvoice(true)}
               className="inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
               <svg
@@ -60,11 +60,11 @@ const QuotationForm = () => {
                   d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                 />
               </svg>
-              Print Quotation
+              Print Invoice
             </button>
             <button
               type="button"
-              onClick={() => handlePrintQuotation(false)}
+              onClick={() => handlePrintInvoice(false)}
               className="inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <svg
@@ -115,13 +115,13 @@ const QuotationForm = () => {
       <div className="bg-white shadow-md rounded-lg p-6">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <QuotationInfo formData={formData} handleChange={handleChange} />
+            <InvoiceInfo formData={formData} handleChange={handleChange} />
             <CustomerInfo
               formData={formData}
               customers={customers}
               handleCustomerChange={handleCustomerChange}
             />
-            {console.log("this si what i wanna seee",customers)}
+
             <ItemsTable
               formData={formData}
               products={products}
@@ -138,4 +138,4 @@ const QuotationForm = () => {
   );
 };
 
-export default QuotationForm;
+export default InvoiceForm;

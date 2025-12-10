@@ -1,4 +1,4 @@
-// src/components/QuotationForm/TotalsSection.jsx
+// src/components/InvoiceForm/TotalsSection.jsx
 import React from 'react';
 
 const TotalsSection = ({ formData, handleChange }) => (
@@ -51,7 +51,7 @@ const TotalsSection = ({ formData, handleChange }) => (
               value={formData.terms || ''}
               onChange={handleChange}
               className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-              placeholder="Terms and conditions for this quotation"
+              placeholder="Terms and conditions for this Invoice"
             />
           </div>
         </div>
@@ -124,7 +124,7 @@ const TotalsSection = ({ formData, handleChange }) => (
                 <span className="text-sm font-medium text-green-600">${(formData.expectedIncome || 0).toFixed(2)}</span>
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                (This information is not shown on customer quotations)
+                (This information is not shown on customer Invoices)
               </div>
             </div>
           </div>

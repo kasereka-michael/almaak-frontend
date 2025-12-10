@@ -1,287 +1,414 @@
 import { useCallback } from 'react';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import logo from '../../../assets/images/logo.jpeg';
-import signature from '../../../assets/images/managerStamp.png'
-import stampImage from '../../../assets/images/stamp.png'
-const useGenerateQuotationPdf = () => {
-  const generateQuotationPdf = useCallback((quotationData, printMode = true) => {
-    try {
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a3',
-      });
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-      // Constants for margins and layout
-      const margin = 12.7; // 0.5 inches = 12.7mm
-      const pageWidth = 297; // A3 width in mm
-      const pageHeight = 420; // A3 height in mm
-      const contentWidth = pageWidth - 2 * margin;
+const useGenerateInvoicePdf = () => {
+    const generateInvoicePdf = useCallback((invoiceData, printMode = true) => {
+        // Validate invoiceData
+        if (!invoiceData || !invoiceData.items) {
+            throw new Error('Invalid invoice data: invoiceData and items are required');
+        }
 
-      // Helper function to add footer on each page
-      const addFooter = () => {
-        doc.setFontSize(12);
-        doc.setTextColor(100);
-        doc.setFont('arial', 'normal');
-        doc.text(
-          'Bank account details: Bank name: Equity BCDC | Bank Account name: Almaak Corporation Sarl | bank account number: 288200123855435 USD',
-          margin,
-          pageHeight - margin - 5,
-          { align: '' }
-        );
-        doc.text(
-          `Page ${doc.internal.getCurrentPageInfo().pageNumber} | Generated on ${new Date().toLocaleDateString()}`,
-          pageWidth - margin,
-          pageHeight - margin,
-          { align: 'right' }
-        );
-      };
+        // Load assets with error handling
+        const assets = {
+            logo: null,
+            signature: null,
+            stamp: null,
+        };
 
-      // Header
-      doc.addImage(logo, 'JPEG', margin, margin, 50, 15);
-      doc.setFontSize(16);
-      doc.setFont('arial', 'bold');
-      doc.setTextColor(26, 95, 122);
-      doc.text('QUOTATION', pageWidth / 2, margin + 8, { align: 'center' });
-      doc.setFontSize(9);
-      doc.setFont('arial', 'normal');
-      doc.setTextColor(55, 65, 81);
-      doc.text(`Quotation #: ${quotationData.quotationId}`, pageWidth - margin, margin + 8, { align: 'right' });
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - margin, margin + 14, { align: 'right' });
+        try {
+            assets.logo = require('../../../assets/images/logo.jpeg');
+        } catch (error) {
+            console.warn('Could not load logo image:', error);
+        }
 
-      // Separators
-      doc.setDrawColor(209, 213, 219);
-      doc.setLineWidth(0.5);
-      doc.line(margin, margin + 15, pageWidth - margin, margin + 15);
+        try {
+            assets.signature = require('../../../assets/images/managerStamp.png');
+        } catch (error) {
+            console.warn('Could not load signature image:', error);
+        }
 
-      // Company Address
-      doc.setFontSize(9);
-      doc.setFont('arial', 'bold');
-      doc.setTextColor(31, 41, 55);
-      doc.text('Almaakcorp sarl', margin, margin + 20);
-      doc.setFont('arial', 'normal');
-      doc.setTextColor(55, 65, 81);
-      doc.text('ADDRESS: TERRITOIRE DE WATSA, DURBA/ DUEMBE', margin, margin + 25);
-      doc.text('GALLERIE MAHANAIM, ROOM 07, ID NAT: 19-F4300-N58465L,', margin, margin + 30);
-      doc.text('N° IMPOT: A2408855C CNSS: 1020017400, ARSP: 4151855306', margin, margin + 35);
-      doc.text('RCCM: CD/GOM/RCCM/24-B-01525, VENDOR: 1075430', margin, margin + 40);
-      doc.text('Website: www.almaakcorp.com | Email: wilsonmuhasa@almaakcorp.com', margin, margin + 44);
-      doc.text('Tel: +243 816 833 285', margin, margin + 49);
+        try {
+            assets.stamp = require('../../../assets/images/stamp.png');
+        } catch (error) {
+            console.warn('Could not load stamp image:', error);
+        }
 
-      // Customer Address
-      doc.setFontSize(9);
-      doc.setFont('arial', 'bold');
-      doc.setTextColor(31, 41, 55);
-      doc.text('To:', pageWidth / 2, margin + 20, { align: 'left' });
-      doc.setFont('arial', 'normal');
-      doc.setTextColor(55, 65, 81);
-      doc.text(quotationData.customerName, pageWidth / 2, margin + 25, { align: 'left' });
-      doc.text(quotationData.customerAddress, pageWidth / 2, margin + 30, { align: 'left' });
-      // doc.text('ID Nat: 01-118-N41183 | NIF: A0702049L', pageWidth / 2, margin + 35, { align: 'left' });
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4',
+            compress: true,
+        });
 
-      // Separator
-      doc.line(margin, margin + 50, pageWidth - margin, margin + 50);
+        // Design Constants
+        const margin = 10;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const primaryColor = [26, 95, 122]; // Updated to teal-like color for headers
+        const textColor = [33, 33, 33]; // Dark gray for text
+        const lightGray = [245, 245, 245]; // Light gray for table backgrounds
+        const accentColor = [200, 200, 200]; // Light gray for dividers
 
-      // Reference and Attention
-      doc.setFontSize(9);
-      doc.setFont('arial', 'bold');
-      doc.setTextColor(31, 41, 55);
-      
-      doc.text('Reference:', margin, margin + 54);
+        // Set default font
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
 
-      doc.setFont('arial', 'normal');
-      doc.setTextColor(55, 65, 81);
-      doc.text(quotationData.reference || 'N/A', margin, margin + 58, { maxWidth: contentWidth / 2 });
+        // Helper functions for fallback drawings
+        const drawFallbackHeader = (doc, margin, primaryColor, textColor) => {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.setTextColor(...primaryColor);
+            doc.text('ALMAAKCORP SARL', margin, 20);
+            doc.setFontSize(9);
+            doc.setTextColor(...textColor);
+            doc.text('Professional Solutions', margin, 26);
+            doc.setDrawColor(...primaryColor);
+            doc.rect(margin, 28, 40, 0.2);
+        };
 
-      doc.setFont('arial', 'bold');
-      doc.setTextColor(31, 41, 55);
-      doc.text('Attention:', pageWidth / 2, margin + 54, { align: 'left' });
-      doc.setFont('arial', 'normal');
-      doc.setTextColor(55, 65, 81);
-      doc.text(quotationData.attention || 'N/A', pageWidth / 2, margin + 58, { align: 'left' });
+        const drawFallbackSignature = (doc, margin, currentY, primaryColor) => {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.setTextColor(...primaryColor);
+            doc.text('Manager', margin, currentY + 10);
+            doc.setDrawColor(...primaryColor);
+            doc.rect(margin, currentY + 12, 50, 0.2);
+        };
 
-      // Itemized Table
-      autoTable(doc, {
-        startY: margin + 70,
-        head: [['No.', 'Product Name', 'Description', 'Part No.', 'Manufacturer', 'Qty', 'Unit Price', 'Total']],
-        body: quotationData.items.map((item, index) => [
-          index + 1,
-          item.name,
-          item.description || 'N/A',
-          item.partNumber || 'N/A',
-          item.manufacturer || 'N/A',
-          item.quantity || 0,
-          `$${parseFloat(item.price || 0).toFixed(2)}`,
-          `$${parseFloat(item.totalPrice || 0).toFixed(2)}`,
-        ]),
-        theme: 'striped',
-        headStyles: {
-          fillColor: [26, 95, 122],
-          textColor: [255, 255, 255],
-          fontSize: 10,
-          fontStyle: 'bold',
-          font: 'arial',
-        },
-        bodyStyles: { fontSize: 9, textColor: [55, 65, 81], cellPadding: 4, font: 'arial' },
-        alternateRowStyles: { fillColor: [244, 244, 245] },
-        columnStyles: {
-          0: { cellWidth: 15, halign: 'center' },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 85 },
-          3: { cellWidth: 30 },
-          4: { cellWidth: 30, halign: 'center' },
-          5: { cellWidth: 20, halign: 'right' },
-          6: { cellWidth: 25, halign: 'right' },
-        },
-        margin: { left: margin, right: margin },
-        didDrawPage: () => addFooter(),
-      });
+        const drawFallbackStamp = (doc, margin, currentY, primaryColor) => {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.setTextColor(...primaryColor);
+            doc.text('', margin + 60, currentY + 10);
+            doc.setDrawColor(...primaryColor);
+            doc.rect(margin + 60, currentY + 12, 50, 0.2);
+        };
 
+        // === HEADER PART 1: THREE COLUMNS ===
+        // Left: Logo
+        if (assets.logo) {
+            try {
+                doc.addImage(assets.logo, 'JPEG', margin, 10, 50, 20);
+            } catch (error) {
+                console.warn('Logo image failed to load:', error);
+                drawFallbackHeader(doc, margin, primaryColor, textColor);
+            }
+        } else {
+            drawFallbackHeader(doc, margin, primaryColor, textColor);
+        }
 
-// Base Y position after the table
-const baseY = doc.lastAutoTable.finalY + 20;
+        // Center: INVOICE Title
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(24);
+        doc.setTextColor(...primaryColor);
+        doc.text('INVOICE', pageWidth / 2, 15, { align: 'center' });
 
-// === ETA SECTION FIRST (moved before TOTALS) ===
-const etaHeight = 8;
-const etaWidth = 80;
-const etaX = pageWidth - margin - etaWidth;
-const etaY = baseY;
+        // Right: Invoice Details
+        const rightX = pageWidth - margin - 40;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...textColor);
+        const invoiceDetails = [
+            `Date: ${invoiceData.issueDate || new Date().toLocaleDateString('en-US', { dateStyle: 'medium' })}`,
+            `PO: ${invoiceData.poNumber || 'N/A'}`,
+            `QRN: ${invoiceData.qrn || 'N/A'}`,
+            `IN-Number: ${invoiceData.invoiceId || 'DRAFT'}`,
+        ];
+        invoiceDetails.forEach((line, i) => {
+            doc.text(line, rightX, 12 + i * 5);
+        });
 
-// Draw ETA background
-doc.setFillColor(26, 95, 122); // Blue
-doc.rect(etaX, etaY, etaWidth, etaHeight, 'F');
+        // Divider
+        doc.setDrawColor(...accentColor);
+        doc.setLineWidth(0.5);
+        doc.line(margin, 30, pageWidth - margin, 30);
 
-// ETA Text
-doc.setFontSize(11);
-doc.setFont('arial', 'bold');
-doc.setTextColor(255, 255, 255);
-doc.text('ETA:', etaX + 3, etaY + etaHeight / 2+1);
-doc.text(quotationData.eta || '4 weeks.', etaX + etaWidth - 3, etaY + etaHeight / 2+1, {
-  align: 'right',
-});
+        // === HEADER PART 2: TWO COLUMNS ===
+        let currentY = 35;
 
-// === TOTALS SECTION (now after ETA) ===
-const totalsY = etaY + etaHeight + 5;
-const totalsHeight = 8 * 4;
-const totalsWidth = 60;
-const totalsX = pageWidth - margin - totalsWidth;
+        // Left: From
+        doc.setFillColor(...primaryColor);
+        doc.rect(margin, currentY, (pageWidth - 2 * margin) / 2 - 5, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Vendor:', margin + 2, currentY + 6);
 
-// Background and border
-doc.setFillColor(240, 244, 245);
-doc.rect(totalsX, totalsY, totalsWidth, totalsHeight, 'F');
-doc.setDrawColor(26, 95, 122);
-doc.setLineWidth(0.5);
-doc.rect(totalsX, totalsY, totalsWidth, totalsHeight);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...textColor);
+        const senderInfo = [
+            'ALMAAKCORP SARL',
+            'Territoire de Watsa, Durba/Duembe',
+            'Gallerie Mahanaim, Room 07',
+            'ID NAT: 19-F4300-N58465L',
+            'RCCM: CD/GOM/RCCM/24-B-01525',
+            'Tel: +243 816 833 285',
+        ];
+        senderInfo.forEach((line, i) => {
+            doc.text(line, margin, currentY + 14 + i * 5);
+        });
 
-// Totals content
-doc.setFontSize(10);
-doc.setFont('arial', 'normal');
-doc.setTextColor(55, 65, 81);
-doc.text('Subtotal:', totalsX + 3, totalsY + 3 + 2);
-doc.text(`$${parseFloat(quotationData.subtotal || 0).toFixed(2)}`, totalsX + totalsWidth - 3, totalsY + 3 + 2, { align: 'right' });
+        // Right: To
+        const recipientX = pageWidth / 2 + 5;
+        doc.setFillColor(...primaryColor);
+        doc.rect(recipientX, currentY, (pageWidth - 2 * margin) / 2 - 5, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Customer:', recipientX + 2, currentY + 6);
 
-doc.text(
-  `Discount (${quotationData.discountType === 'percentage' ? `${parseFloat(quotationData.discount || 0).toFixed(2)}%` : '$'}):`,
-  totalsX + 3,
-  totalsY + 3 + 8 + 2
-);
-doc.text(
-  quotationData.discount > 0 ? `-$${parseFloat(quotationData.discount || 0).toFixed(2)}` : '$0.00',
-  totalsX + totalsWidth - 3,
-  totalsY + 3 + 8 + 2,
-  { align: 'right' }
-);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...textColor);
+        doc.text(invoiceData.customerName || 'Customer Name', recipientX, currentY + 14);
+        const addressLines = doc.splitTextToSize(invoiceData.customerAddress || 'Address not provided', 80);
+        addressLines.forEach((line, i) => {
+            doc.text(line, recipientX, currentY + 20 + i * 5);
+        });
 
-doc.text(`Tax (${parseFloat(quotationData.taxRate || 0).toFixed(2)}%):`, totalsX + 3, totalsY + 3 + 16 + 2);
-doc.text(`$${parseFloat(quotationData.tax || 0).toFixed(2)}`, totalsX + totalsWidth - 3, totalsY + 3 + 16 + 2, { align: 'right' });
+        currentY += Math.max(senderInfo.length * 5 + 10, addressLines.length * 5 + 16) + 10;
 
-// Total
-doc.setFont('arial', 'bold');
-doc.text('Total:', totalsX + 3, totalsY + 3 + 24 + 2);
-doc.text(`$${parseFloat(quotationData.totalAmount || 0).toFixed(2)}`, totalsX + totalsWidth - 3, totalsY + 3 + 24 + 2, {
-  align: 'right',
-});
+        // === HEADER PART 3: REQUESTER ===
+        doc.setFillColor(...primaryColor);
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Requester:', margin + 2, currentY + 6);
 
-// === MANAGER SIGNATURE SECTION ===
-let managerSectionY = totalsY + totalsHeight + 15;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...textColor);
+        doc.text(invoiceData.requester || 'Not specified', margin, currentY + 14);
 
-// "Manager" Text below the line
-doc.setFont('arial', 'bold');
-doc.setFontSize(10);
-doc.setTextColor(0);
-doc.text('Manager', margin, managerSectionY - 5);
+        currentY += 20;
 
+        // === ITEMS TABLE ===
+        doc.autoTable({
+            startY: currentY,
+            head: [
+                [
+                    { content: '#', styles: { halign: 'center', fontStyle: 'bold', fillColor: primaryColor, textColor: [255, 255, 255] } },
+                    { content: 'Description', styles: { fontStyle: 'bold', fillColor: primaryColor, textColor: [255, 255, 255] } },
+                    { content: 'Qty', styles: { halign: 'center', fontStyle: 'bold', fillColor: primaryColor, textColor: [255, 255, 255] } },
+                    { content: 'Unit Price', styles: { halign: 'right', fontStyle: 'bold', fillColor: primaryColor, textColor: [255, 255, 255] } },
+                    { content: 'Total', styles: { halign: 'right', fontStyle: 'bold', fillColor: primaryColor, textColor: [255, 255, 255] } },
+                ],
+            ],
+            body: invoiceData.items.map((item, idx) => [
+                (idx + 1).toString(),
+                `${item.name || 'Item'}\n${item.description || ''}`,
+                item.quantity || 0,
+                { content: `$${parseFloat(item.price || 0).toFixed(2)}`, styles: { halign: 'right' } },
+                { content: `$${parseFloat((item.quantity || 0) * (item.price || 0)).toFixed(2)}`, styles: { halign: 'right', fontStyle: 'bold' } },
+            ]),
+            styles: {
+                fontSize: 9,
+                cellPadding: 5,
+                lineColor: accentColor,
+                lineWidth: 0.3,
+                textColor: textColor,
+            },
+            alternateRowStyles: {
+                fillColor: lightGray,
+            },
+            columnStyles: {
+                0: { cellWidth: 15 },
+                1: { cellWidth: 'auto' },
+                2: { cellWidth: 20 },
+                3: { cellWidth: 30 },
+                4: { cellWidth: 30 },
+            },
+            margin: { left: margin, right: margin },
+            theme: 'grid',
+            didDrawPage: () => {
+                // Add page numbers
+                doc.setFontSize(8);
+                doc.setTextColor(...textColor);
+                doc.text(`Page ${doc.internal.getCurrentPageInfo().pageNumber}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+            },
+        });
 
-// Draw horizontal line
-doc.setDrawColor(0);
-doc.setLineWidth(0.2);
-doc.line(margin, managerSectionY, margin + 65, managerSectionY);
+        currentY = doc.lastAutoTable.finalY + 15;
 
+        // === NOTES AND TOTALS: TWO COLUMNS ===
+        if (currentY > pageHeight - 80) {
+            doc.addPage();
+            currentY = margin;
+        }
 
-// Add Stamp Image under the "Manager" text (adjust size and position as needed)
+        // Left: Notes (70% width)
+        const notesWidth = (pageWidth - 2 * margin) * 0.7;
+        doc.setFillColor(...primaryColor);
+        doc.rect(margin, currentY, notesWidth, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Notes:', margin + 2, currentY + 6);
 
-if (signature) {
-  doc.addImage(signature, 'PNG', margin, managerSectionY + 2, 40, 20); 
-}
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...textColor);
+        const notesLines = doc.splitTextToSize(invoiceData.notes || 'No additional notes provided.', notesWidth - 10);
+        notesLines.forEach((line, i) => {
+            if (currentY + 14 + i * 5 > pageHeight - 80) {
+                doc.addPage();
+                currentY = margin;
+            }
+            doc.text(line, margin, currentY + 14 + i * 5);
+        });
 
+        // Right: Totals (30% width)
+        const totalsWidth = (pageWidth - 2 * margin) * 0.3 - 5;
+        const totalsX = pageWidth - margin - totalsWidth;
+        doc.setFillColor(...primaryColor);
+        doc.rect(totalsX, currentY, totalsWidth, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Totals:', totalsX + 2, currentY + 6);
 
-if (stampImage) {
-  const stampWidth = 40;
-  const stampHeight = 40;
-  const stampX = margin + 30;
-  const stampY = managerSectionY - 10;
+        doc.autoTable({
+            startY: currentY + 10,
+            body: [
+                [
+                    { content: 'Subtotal:', styles: { fontStyle: 'bold' } },
+                    { content: `$${parseFloat(invoiceData.subtotal || 0).toFixed(2)}`, styles: { halign: 'right' } },
+                ],
+                [
+                    { content: `Discount (${invoiceData.discountPercentage || 0}%):`, styles: { fontStyle: 'bold', textColor: [200, 0, 0] } },
+                    { content: `-$${parseFloat(invoiceData.discount || 0).toFixed(2)}`, styles: { halign: 'right', textColor: [200, 0, 0] } },
+                ],
+                [
+                    { content: `Tax (${invoiceData.taxRate || 0}%):`, styles: { fontStyle: 'bold' } },
+                    { content: `$${parseFloat(invoiceData.tax || 0).toFixed(2)}`, styles: { halign: 'right' } },
+                ],
+                [
+                    { content: 'Total Due:', styles: { fontStyle: 'bold', fillColor: primaryColor, textColor: [255, 255, 255] } },
+                    { content: `$${parseFloat(invoiceData.total || 0).toFixed(2)}`, styles: { halign: 'right', fontStyle: 'bold', fillColor: primaryColor, textColor: [255, 255, 255] } },
+                ],
+            ],
+            styles: {
+                fontSize: 9,
+                cellPadding: 5,
+                lineColor: accentColor,
+                lineWidth: 0.3,
+            },
+            columnStyles: {
+                0: { cellWidth: totalsWidth / 2 },
+                1: { cellWidth: totalsWidth / 2 },
+            },
+            margin: { left: totalsX, right: margin },
+            theme: 'grid',
+        });
 
-  doc.addImage(stampImage, 'PNG', stampX, stampY, stampWidth, stampHeight);
-}
+        currentY = Math.max(currentY + notesLines.length * 5 + 10, doc.lastAutoTable.finalY) + 15;
 
+        // === SIGNATURE AND STAMP ===
+        if (currentY > pageHeight - 60) {
+            doc.addPage();
+            currentY = margin;
+        }
 
+        if (assets.signature) {
+            try {
+                doc.addImage(assets.signature, 'PNG', margin, currentY, 50, 20);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(...textColor);
+                doc.text('Manager Signature', margin, currentY + 25);
+            } catch (error) {
+                console.warn('Signature image failed to load:', error);
+                drawFallbackSignature(doc, margin, currentY, primaryColor);
+            }
+        } else {
+            drawFallbackSignature(doc, margin, currentY, primaryColor);
+        }
 
+        if (assets.stamp) {
+            try {
+                doc.addImage(assets.stamp, 'PNG', margin + 60, currentY, 50, 20);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(...textColor);
+                doc.text('Company Stamp', margin + 60, currentY + 25);
+            } catch (error) {
+                console.warn('Stamp image failed to load:', error);
+                drawFallbackStamp(doc, margin, currentY, primaryColor);
+            }
+        } else {
+            drawFallbackStamp(doc, margin, currentY, primaryColor);
+        }
 
-// === NOTES & TERMS ===
-let currentY = managerSectionY + 35;
-if (quotationData.notes) {
-  doc.setFontSize(10);
-  doc.setFont('arial', 'bold');
-  doc.setTextColor(31, 41, 55);
-  doc.text('Notes:', margin, currentY);
-  doc.setFontSize(9);
-  doc.setFont('arial', 'normal');
-  doc.setTextColor(55, 65, 81);
-  doc.text(quotationData.notes, margin, currentY + 5, { maxWidth: contentWidth });
-  currentY += doc.getTextDimensions(quotationData.notes, { maxWidth: contentWidth }).h + 10;
-}
-if (quotationData.terms) {
-  doc.setFontSize(10);
-  doc.setFont('arial', 'bold');
-  doc.setTextColor(31, 41, 55);
-  doc.text('Terms & Conditions:', margin, currentY);
-  doc.setFontSize(9);
-  doc.setFont('arial', 'normal');
-  doc.setTextColor(55, 65, 81);
-  doc.text(quotationData.terms, margin, currentY + 5, { maxWidth: contentWidth });
-}
+        currentY += 30;
 
+        // === TERMS AND CONDITIONS ===
+        if (currentY > pageHeight - 60) {
+            doc.addPage();
+            currentY = margin;
+        }
 
-      // Ensure footer on the last page
-      addFooter();
+        doc.setFillColor(...primaryColor);
+        doc.rect(margin, currentY, pageWidth - 2 * margin, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Terms and Conditions:', margin + 2, currentY + 6);
 
-      // Output PDF
-      if (printMode) {
-        // createQuotation(quotationData)
-        doc.save(`${quotationData.quotationId}.pdf`);
-      } else {
-        // createQuotation(quotationData)
-        doc.output('save', `${quotationData.quotationId}.pdf`);
-      }
-      return true;
-    } catch (err) {
-      console.error('PDF generation error:', err);
-      throw new Error(`Failed to generate PDF: ${err.message}`);
-    }
-  }, []);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...textColor);
+        const terms = invoiceData.terms || 'Payment is due within 30 days. Late payments may incur a 1.5% monthly interest. All goods remain property of ALMAAKCORP SARL until fully paid.';
+        const termsLines = doc.splitTextToSize(terms, pageWidth - 2 * margin - 10);
+        termsLines.forEach((line, i) => {
+            if (currentY + 14 + i * 5 > pageHeight - 60) {
+                doc.addPage();
+                currentY = margin;
+            }
+            doc.text(line, margin, currentY + 14 + i * 5);
+        });
 
-  return { generateQuotationPdf };
+        currentY += termsLines.length * 5 + 15;
+
+        // === THANK YOU MESSAGE ===
+        if (currentY > pageHeight - 40) {
+            doc.addPage();
+            currentY = margin;
+        }
+
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(10);
+        doc.setTextColor(...primaryColor);
+        doc.text('Thank you for trusting us with your business. We look forward to serving you again!', pageWidth / 2, currentY, { align: 'center' });
+
+        currentY += 10;
+
+        // === FOOTER ===
+        const footerY = pageHeight - 30;
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, footerY, pageWidth, 30, 'F');
+
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        const footerText = [
+            'Bank: Equity BCDC | Account: 288200123855435 (USD)',
+            'Contact: +243 816 833 285 | Email: info@almaakcorp.com | Website: www.almaakcorp.com',
+        ];
+        footerText.forEach((line, i) => {
+            doc.text(line, margin, footerY + 10 + i * 6);
+        });
+
+        // Output
+        if (printMode) {
+            doc.save(`Invoice_${invoiceData.invoiceId || 'DRAFT'}.pdf`);
+        } else {
+            return doc.output('blob');
+        }
+    }, []);
+
+    return { generateInvoicePdf };
 };
 
-export default useGenerateQuotationPdf;
+export default useGenerateInvoicePdf;

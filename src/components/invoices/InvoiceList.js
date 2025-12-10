@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchQuotation, fetchQuotations, deleteQuotation ,fetchQuotationyById} from '../../services/api';
-import { generateQuotationPdf } from '../../utils/exportUtils';
-import QuotationPreviewModal from '../quotations/utils/QuotationPreviewModal';
+import { fetchInvoice, fetchInvoices, deleteInvoice } from '../../services/api';
+import useGenerateInvoicePdf from './hooks/useGenerateInvoicePdf';
+import InvoicePreviewModal from '../invoices/utils/InvoicePreviewModal';
 
-const QuotationList = () => {
-  const [quotations, setQuotations] = useState([]);
+const InvoiceList = () => {
+  const { generateInvoicePdf } = useGenerateInvoicePdf();
+  
+  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -24,13 +26,13 @@ const QuotationList = () => {
   const [pageSize] = useState(10);
 
   // Modal state
-  const [previewQuotation, setPreviewQuotation] = useState(null);
+  const [previewInvoice, setPreviewInvoice] = useState(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState('');
 
   useEffect(() => {
-    const loadQuotations = async () => {
+    const loadInvoices = async () => {
       try {
         setLoading(true);
         const params = {
@@ -41,9 +43,9 @@ const QuotationList = () => {
           startDate: dateRange.start || undefined,
           endDate: dateRange.end || undefined,
         };
-        const data = await fetchQuotations(params);
-        console.info('Quotations data:', data);
-        setQuotations(data.quotations);
+        const data = await fetchInvoices(params);
+        console.info('Invoices data:', data);
+        setInvoices(data.invoices);
         setPagination({
           currentPage: data.currentPage,
           totalPages: data.totalPages,
@@ -54,14 +56,14 @@ const QuotationList = () => {
         });
         setError('');
       } catch (err) {
-        setError('Failed to load quotations. Please try again.');
-        console.error('Error loading quotations:', err);
+        setError('Failed to load Invoices. Please try again.');
+        console.error('Error loading Invoices:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadQuotations();
+    loadInvoices();
   }, [pageNo, searchTerm, filterStatus, dateRange.start, dateRange.end]);
 
   const handlePageChange = (newPage) => {
@@ -69,35 +71,35 @@ const QuotationList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this quotation?')) {
+    if (window.confirm('Are you sure you want to delete this Invoice?')) {
       try {
         setLoading(true);
-        await deleteQuotation(id);
-        setQuotations(quotations.filter((quotation) => quotation.id !== id));
+        await deleteInvoice(id);
+        setInvoices(invoices.filter((Invoice) => Invoice.id !== id));
       } catch (err) {
-        setError('Failed to delete quotation. Please try again.');
-        console.error('Error deleting quotation:', err);
+        setError('Failed to delete Invoice. Please try again.');
+        console.error('Error deleting Invoice:', err);
       } finally {
         setLoading(false);
       }
     }
   };
 
-  const handlePreViewQuotation = async (id) => {
+  const handlePreViewInvoice = async (id) => {
     try {
       setPreviewLoading(true);
       setPreviewError('');
-      const quotation = await fetchQuotation(id);
-      console.log('Preview quotation data:', quotation);
-      if (!quotation || Object.keys(quotation).length === 0) {
-        throw new Error('No quotation data received');
+      const Invoice = await fetchInvoice(id);
+      console.log('Preview Invoice data:', Invoice);
+      if (!Invoice || Object.keys(Invoice).length === 0) {
+        throw new Error('No Invoice data received');
       }
-      setPreviewQuotation(quotation);
+      setPreviewInvoice(Invoice);
       setIsPreviewModalOpen(true);
     } catch (err) {
-      const errorMessage = err.message || 'Failed to load quotation preview. Please try again.';
+      const errorMessage = err.message || 'Failed to load Invoice preview. Please try again.';
       setPreviewError(errorMessage);
-      console.error('Error fetching quotation for preview:', err);
+      console.error('Error fetching Invoice for preview:', err);
       setIsPreviewModalOpen(true); // Show error in modal
     } finally {
       setPreviewLoading(false);
@@ -106,27 +108,24 @@ const QuotationList = () => {
 
   const handleClosePreviewModal = () => {
     setIsPreviewModalOpen(false);
-    setPreviewQuotation(null);
+    setPreviewInvoice(null);
     setPreviewError('');
   };
 
-  const handlePrintQuotation = async (id, printMode = true) => {
+  const handlePrintInvoice = async (id, printMode = true) => {
     try {
       setLoading(true);
-      console.log('Fetching quotation data for ID:', id);
-      const quotationData = await fetchQuotationyById(id);
-      console.log('Quotation data received:', quotationData);
-      if (!quotationData) {
-        throw new Error('No quotation data received');
+      console.log('Fetching Invoice data for ID:', id);
+      const InvoiceData = await fetchInvoice(id);
+      console.log('Invoice data received:', InvoiceData);
+      if (!InvoiceData) {
+        throw new Error('No Invoice data received');
       }
-      const result = generateQuotationPdf(quotationData, printMode);
-      if (!result) {
-        throw new Error('PDF generation failed');
-      }
+      generateInvoicePdf(InvoiceData, printMode);
       console.log('PDF generation successful');
     } catch (err) {
-      setError('Failed to generate printable quotation. Please try again.');
-      console.error('Error generating quotation PDF:', err);
+      setError('Failed to generate printable Invoice. Please try again.');
+      console.error('Error generating Invoice PDF:', err);
       alert(`Error: ${err.message || 'Failed to generate PDF'}`);
     } finally {
       setLoading(false);
@@ -142,14 +141,14 @@ const QuotationList = () => {
   };
 
   // Client-side filtering for display (only for search and status if needed)
-  const filteredQuotations = quotations.filter((quotation) => {
-    const quotationId = quotation.quotationId || `QT-${quotation.id.toString().padStart(5, '0')}`;
-    const customerName = quotation.customerName || '';
-    const description = quotation.description || '';
-    const status = quotation.status ? quotation.status.toLowerCase() : '';
+  const filteredInvoices = invoices.filter((Invoice) => {
+    const InvoiceId = Invoice.InvoiceId || `QT-${Invoice.id.toString().padStart(5, '0')}`;
+    const customerName = Invoice.customerName || '';
+    const description = Invoice.description || '';
+    const status = Invoice.status ? Invoice.status.toLowerCase() : '';
 
     const matchesSearch =
-      quotationId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      InvoiceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       description.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -161,12 +160,12 @@ const QuotationList = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Quotations</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Invoices</h1>
         <Link
-          to="/quotations/add"
+          to="/invoices/add"
           className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
-          Create New Quotation
+          Create New Invoice
         </Link>
       </div>
 
@@ -217,7 +216,7 @@ const QuotationList = () => {
                   <input
                     type="text"
                     className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                    placeholder="Search quotations..."
+                    placeholder="Search Invoices..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -273,7 +272,7 @@ const QuotationList = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="p-4 flex justify-between items-center bg-gray-50 border-t border-gray-200">
           <button
             disabled={pagination.isFirst}
@@ -307,7 +306,7 @@ const QuotationList = () => {
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Quotation ID
+                    Invoice ID
                   </th>
                   <th
                     scope="col"
@@ -348,89 +347,89 @@ const QuotationList = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredQuotations.map((quotation) => (
-                  <tr key={quotation.id}>
+                {filteredInvoices.map((Invoice) => (
+                  <tr key={Invoice.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {quotation.quotationId || `QT-${quotation.id.toString().padStart(5, '0')}`}
+                        {Invoice.InvoiceId || `QT-${Invoice.id.toString().padStart(5, '0')}`}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{quotation.customerName}</div>
-                      {quotation.customerEmail && (
-                        <div className="text-xs text-gray-500">{quotation.customerEmail}</div>
+                      <div className="text-sm text-gray-900">{Invoice.customerName}</div>
+                      {Invoice.customerEmail && (
+                        <div className="text-xs text-gray-500">{Invoice.customerEmail}</div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString() : 'N/A'}
+                        {Invoice.createdAt ? new Date(Invoice.createdAt).toLocaleDateString() : 'N/A'}
                       </div>
                       <div className="text-xs text-gray-500">
                         Valid until:{' '}
-                        {quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString() : 'N/A'}
+                        {Invoice.validUntil ? new Date(Invoice.validUntil).toLocaleDateString() : 'N/A'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{quotation.attention}</div>
-                      {quotation.reference && (
-                        <div className="text-xs text-gray-500">{quotation.reference}</div>
+                      <div className="text-sm text-gray-900">{Invoice.attention}</div>
+                      {Invoice.reference && (
+                        <div className="text-xs text-gray-500">{Invoice.reference}</div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        ${typeof (quotation.totalAmount || quotation.total) === 'number'
-                          ? (quotation.totalAmount || quotation.total).toFixed(2)
+                        ${typeof (Invoice.totalAmount || Invoice.total) === 'number'
+                          ? (Invoice.totalAmount || Invoice.total).toFixed(2)
                           : '0.00'}
                       </div>
                       <div className="text-xs font-medium text-green-800">
                         Expected Income: $
-                        {typeof (quotation.expectedIncome || quotation.total) === 'number'
-                          ? (quotation.expectedIncome || quotation.total).toFixed(2)
+                        {typeof (Invoice.expectedIncome || Invoice.total) === 'number'
+                          ? (Invoice.expectedIncome || Invoice.total).toFixed(2)
                           : '0.00'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          !quotation.status
+                          !Invoice.status
                             ? 'bg-gray-100 text-gray-800'
-                            : quotation.status.toLowerCase() === 'accepted' ||
-                              quotation.status.toLowerCase() === 'approved'
+                            : Invoice.status.toLowerCase() === 'accepted' ||
+                              Invoice.status.toLowerCase() === 'approved'
                             ? 'bg-green-100 text-green-800'
-                            : quotation.status.toLowerCase() === 'rejected'
+                            : Invoice.status.toLowerCase() === 'rejected'
                             ? 'bg-red-100 text-red-800'
-                            : quotation.status.toLowerCase() === 'sent' ||
-                              quotation.status.toLowerCase() === 'pending'
+                            : Invoice.status.toLowerCase() === 'sent' ||
+                              Invoice.status.toLowerCase() === 'pending'
                             ? 'bg-blue-100 text-blue-800'
-                            : quotation.status.toLowerCase() === 'expired'
+                            : Invoice.status.toLowerCase() === 'expired'
                             ? 'bg-gray-100 text-gray-800'
                             : 'bg-yellow-100 text-yellow-800'
                         }`}
                       >
-                        {quotation.status || 'Unknown'}
+                        {Invoice.status || 'Unknown'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link
-                        to={`/quotations/edit/${quotation.quotationId}`}
+                        to={`/invoices/edit/${Invoice.InvoiceId}`}
                         className="text-indigo-600 hover:text-indigo-900 mr-2"
                       >
                         Edit
                       </Link>
                       <button
-                        onClick={() => handleDelete(quotation.id)}
+                        onClick={() => handleDelete(Invoice.id)}
                         className="text-red-600 hover:text-red-900 mr-2"
                       >
                         Delete
                       </button>
                       <button
-                        onClick={() => handlePrintQuotation(quotation.id, true)}
+                        onClick={() => handlePrintInvoice(Invoice.id, true)}
                         className="text-green-600 hover:text-green-900 mr-2"
                       >
                         Print
                       </button>
                       <button
-                        onClick={() => handlePreViewQuotation(quotation.id)}
+                        onClick={() => handlePreViewInvoice(Invoice.id)}
                         className="text-blue-600 hover:text-blue-700"
                       >
                         View
@@ -438,10 +437,10 @@ const QuotationList = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredQuotations.length === 0 && (
+                {filteredInvoices.length === 0 && (
                   <tr>
                     <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
-                      No quotations found matching your search criteria
+                      No Invoices found matching your search criteria
                     </td>
                   </tr>
                 )}
@@ -452,8 +451,8 @@ const QuotationList = () => {
       </div>
 
       {/* Preview Modal */}
-      <QuotationPreviewModal
-        quotation={previewQuotation}
+      <InvoicePreviewModal
+        Invoice={previewInvoice}
         isOpen={isPreviewModalOpen}
         onClose={handleClosePreviewModal}
         loading={previewLoading}
@@ -463,4 +462,4 @@ const QuotationList = () => {
   );
 };
 
-export default QuotationList;
+export default InvoiceList;
