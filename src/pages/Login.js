@@ -5,8 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Login() {
   const navigate = useNavigate();
   const { login, isAuthenticated, loading, error } = useAuth();
-  const [username, setUsername] = useState('michael');
-  const [password, setPassword] = useState('michael');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState(null);
 
@@ -64,7 +64,7 @@ export default function Login() {
                 className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
+                placeholder=""
                 autoFocus
               />
             </div>
@@ -76,7 +76,7 @@ export default function Login() {
                   className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="admin123!"
+                  placeholder=""
                 />
                 <button
                   type="button"
@@ -95,7 +95,7 @@ export default function Login() {
               {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
-          <p className="text-xs text-gray-500 mt-4">Use michael / michael</p>
+          {/* Helper text removed to keep login page clean */}
         </div>
       </div>
     </div>
