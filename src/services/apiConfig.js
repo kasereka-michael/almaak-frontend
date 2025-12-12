@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // API configuration for session-based authentication
 const API = axios.create({
-    baseURL: process.env.REACT_APP_API_BASE_URL || '/api',
+    baseURL: process.env.REACT_APP_API_BASE_URL || 'https://almaak-backend.onrender.com/api',
     timeout: 30000,
     withCredentials: true,
 });
