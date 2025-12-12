@@ -23,6 +23,7 @@ import InvoiceForm from './components/invoices/InvoiceForm';
 import POList from './components/po/POList';
 import POForm from './components/po/POForm';
 import TrashAlert from './components/trash/TrashAlert';
+import Profile from './pages/Profile';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => <PrivateRoute>{children}</PrivateRoute>;
@@ -88,6 +89,9 @@ function App() {
       <Route path="/pos" element={<ProtectedRoute><AppLayout><POList /></AppLayout></ProtectedRoute>} />
       <Route path="/pos/add" element={<ProtectedRoute><AppLayout><POForm /></AppLayout></ProtectedRoute>} />
       <Route path="/pos/edit/:id" element={<ProtectedRoute><AppLayout><POForm /></AppLayout></ProtectedRoute>} />
+
+      {/* Profile */}
+      <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
