@@ -30,6 +30,13 @@ export default function Profile() {
       try {
         const me = await UserService.getCurrentUserProfile();
         if (mounted) setProfile(me);
+        // Load available roles for admin UI
+        try {
+          const { data } = await API.get('roles');
+          const roleNames = (Array.isArray(data) ? data : []).map(r => String(r.name || r).replace(/^ROLE_/, ''));
+          const unique = Array.from(new Set(roleNames));
+          if (mounted) setAvailableRoles(unique);
+        } catch (_) {}
       } catch (e) {
         setError('Failed to load profile');
       } finally {
@@ -62,6 +69,7 @@ export default function Profile() {
   // Admin quick actions (create user and role)
   const [newUser, setNewUser] = useState({ username: '', email: '', password: '', roles: ['USER'] });
   const [newRole, setNewRole] = useState('');
+  const [availableRoles, setAvailableRoles] = useState([]);
 
   const createUser = async () => {
     setError('');
@@ -201,8 +209,21 @@ export default function Profile() {
               <Field label="Password">
                 <input type="password" value={newUser.password} onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
               </Field>
-              <Field label="Roles (comma separated)">
-                <input value={(newUser.roles || []).join(',')} onChange={e => setNewUser(u => ({ ...u, roles: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              <Field label="Roles">
+                <select
+                  multiple
+                  value={newUser.roles || []}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+                    setNewUser(u => ({ ...u, roles: selected }));
+                  }}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 h-28 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {(availableRoles.length ? availableRoles : ['USER']).map((role) => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple roles.</p>
               </Field>
               <div className="flex justify-end">
                 <button onClick={createUser} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Create User</button>
