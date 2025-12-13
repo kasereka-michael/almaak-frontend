@@ -9,6 +9,7 @@ import {
   fetchQuotations,
   fetchInvoices,
 } from '../../services/api';
+import API from '../../services/apiConfig';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -113,6 +114,14 @@ const Dashboard = () => {
         fetchQuotations().catch(() => []),
         fetchInvoices().catch(() => []),
       ]);
+      // Fetch backend total quotations count (fallback to list length if not available)
+      let backendQuotationsCount = 0;
+      try {
+        const { data } = await API.get('quotation/v1/count');
+        backendQuotationsCount = Number(data || 0);
+      } catch (_) {
+        // ignore and fallback later
+      }
 
       // Map results to named collections with safe defaults
       const customers = Array.isArray(results[0]?.content) ? results[0].content : (Array.isArray(results[0]) ? results[0] : []);
@@ -121,19 +130,42 @@ const Dashboard = () => {
       const invoices = Array.isArray(results[3]?.content) ? results[3].content : (Array.isArray(results[3]) ? results[3] : []);
 
       // Derive metrics for cards requested
-      const totalQuotations = quotations.length;
+      const totalQuotations = backendQuotationsCount > 0 ? backendQuotationsCount : quotations.length;
       const acceptedQuotations = quotations.filter(q => (q.status || q.etat || '').toString().toLowerCase() === 'accepted').length;
       // Treat invoices as POs for now if PO endpoint not wired; adjust when PO fetch exists
       const allPOs = invoices; // replace with fetched POs when available
-      const totalPOs = allPOs.length;
-      const paidPOs = allPOs.filter(po => {
+      // Backend POs count
+      let totalPOs = allPOs.length;
+      try {
+        const { data: posCount } = await API.get('po/v1/count');
+        if (!Number.isNaN(Number(posCount)) && Number(posCount) >= 0) {
+          totalPOs = Number(posCount);
+        }
+      } catch (_) { /* fallback to list length */ }
+      // Backend paid POs count (fallback to client-side computation)
+      let paidPOs = allPOs.filter(po => {
         const st = (po.status || po.paymentStatus || '').toString().toLowerCase();
         return st === 'paid' || st === 'completed' || st === 'settled';
       }).length;
-      const totalIncomeFromPOs = allPOs.reduce((sum, po) => {
+      try {
+        const { data: paidCount } = await API.get('po/v1/count', { params: { paid: true } });
+        const n = Number(paidCount);
+        if (!Number.isNaN(n) && n >= 0) {
+          paidPOs = n;
+        }
+      } catch (_) { /* fallback to filtered length */ }
+      // Prefer backend total income for POs if available
+      let totalIncomeFromPOs = allPOs.reduce((sum, po) => {
         const amount = Number(po.totalAmount || po.amount || po.total || 0);
         return sum + (isNaN(amount) ? 0 : amount);
       }, 0);
+      try {
+        const { data: poIncome } = await API.get('po/v1/income/total');
+        const n = Number(poIncome);
+        if (!Number.isNaN(n) && n >= 0) {
+          totalIncomeFromPOs = n;
+        }
+      } catch (_) { /* fallback to computed sum */ }
 
       // Placeholder/empty arrays for modules not yet wired
       const accounts = [];
@@ -637,7 +669,7 @@ const Dashboard = () => {
           {/* Tax Compliance Status */}
           {chartData.taxCompliance && chartData.taxCompliance.datasets.length > 0 && (
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-base font-semibold mb-4">Tax Compliance Status</h3>
+              <h3 className="text-base font-semibold mb-4">Quotation Revenue Expected</h3>
               <div className="h-64">
                 <Doughnut 
                   data={chartData.taxCompliance} 

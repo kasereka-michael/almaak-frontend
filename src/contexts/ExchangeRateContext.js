@@ -163,12 +163,12 @@ export const useExchangeRate = () => {
 
 export const ExchangeRateProvider = ({ children }) => {
   const [exchangeRates, setExchangeRates] = useState({
-    EUR: 1.0,      // Base currency
-    USD: 1.08,     // Default rate
+    USD: 1.0,      // Base currency
+    EUR: 0.92,     // Reference rate (unused in formatting)
     FC: 2800.0     // Default rate for Congolese Franc
   });
 
-  const [baseCurrency, setBaseCurrency] = useState('EUR');
+  const [baseCurrency, setBaseCurrency] = useState('USD');
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
@@ -220,38 +220,24 @@ export const ExchangeRateProvider = ({ children }) => {
     return baseAmount * toRate;
   };
 
-  const formatCurrency = (amount, currency = baseCurrency, options = {}) => {
-    // Handle custom currencies that aren't supported by Intl.NumberFormat
-    const customCurrencies = {
-      'FC': 'CDF', // Congolese Franc - use CDF as the standard ISO code
-      'XOF': 'XOF', // West African CFA franc
-      'XAF': 'XAF'  // Central African CFA franc
-    };
-
-    // Use standard ISO code if available, otherwise fall back to custom formatting
-    const isoCode = customCurrencies[currency] || currency;
-    
+  const formatCurrency = (amount, _currency = 'USD', options = {}) => {
+    // Force USD formatting everywhere
     const defaultOptions = {
       style: 'currency',
-      currency: isoCode,
+      currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
       ...options
     };
-
     try {
-      // Try to format with Intl.NumberFormat
-      return new Intl.NumberFormat('en-US', defaultOptions).format(amount);
+      return new Intl.NumberFormat('en-US', defaultOptions).format(Number(amount || 0));
     } catch (error) {
-      // Fallback for unsupported currencies - use symbol + amount format
-      const symbol = getCurrencySymbol(currency);
+      // Fallback: prefix with $ if Intl fails
       const formattedAmount = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-        ...options
-      }).format(amount);
-      
-      return `${symbol} ${formattedAmount}`;
+      }).format(Number(amount || 0));
+      return `${formattedAmount}`;
     }
   };
 
@@ -315,7 +301,8 @@ export const ExchangeRateProvider = ({ children }) => {
     baseCurrency,
     lastUpdated,
     loading,
-    setBaseCurrency,
+    // Disable base currency changes to enforce USD across UI
+    setBaseCurrency: () => {},
     updateExchangeRate,
     updateAllRates,
     convertCurrency,
