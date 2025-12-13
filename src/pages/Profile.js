@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import UserService from '../services/userService';
+import API from '../services/apiConfig';
 
 const Field = ({ label, children }) => (
   <div className="mb-4">
@@ -78,16 +79,8 @@ export default function Profile() {
     setError('');
     setMessage('');
     try {
-      const res = await fetch('/api/roles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newRole })
-      });
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(err || `HTTP ${res.status}`);
-      }
-      setMessage(`Role ${newRole} created`);
+      const { data } = await API.post('/api/roles', { name: newRole });
+      setMessage(`Role ${data?.name || newRole} created`);
       setNewRole('');
     } catch (e) {
       setError(e.message || 'Failed to create role');

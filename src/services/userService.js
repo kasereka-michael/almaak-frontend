@@ -1,4 +1,4 @@
-import { getAuthHeaders } from './api';
+import API from './apiConfig';
 
 const BASE_URL = '/api/users';
 
@@ -35,16 +35,8 @@ export class UserService {
       if (department) params.append('department', department);
       if (enabled !== undefined) params.append('enabled', enabled.toString());
 
-      const response = await fetch(`${BASE_URL}?${params.toString()}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.get(`${BASE_URL}`, { params: Object.fromEntries(params) });
+      return data;
     } catch (error) {
       console.error('Error fetching users:', error);
       throw error;
@@ -56,19 +48,8 @@ export class UserService {
    */
   static async getUserById(userId) {
     try {
-      const response = await fetch(`${BASE_URL}/${userId}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.get(`${BASE_URL}/${userId}`);
+      return data;
     } catch (error) {
       console.error('Error fetching user:', error);
       throw error;
@@ -80,19 +61,8 @@ export class UserService {
    */
   static async getUserByUsername(username) {
     try {
-      const response = await fetch(`${BASE_URL}/username/${username}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.get(`${BASE_URL}/username/${encodeURIComponent(username)}`);
+      return data;
     } catch (error) {
       console.error('Error fetching user by username:', error);
       throw error;
@@ -119,16 +89,8 @@ export class UserService {
         sortDir
       });
 
-      const response = await fetch(`${BASE_URL}/search?${params.toString()}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.get(`${BASE_URL}/search`, { params: Object.fromEntries(params) });
+      return data;
     } catch (error) {
       console.error('Error searching users:', error);
       throw error;
@@ -155,16 +117,8 @@ export class UserService {
         sortDir
       });
 
-      const response = await fetch(`${BASE_URL}/role?${params.toString()}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.get(`${BASE_URL}/role`, { params: Object.fromEntries(params) });
+      return data;
     } catch (error) {
       console.error('Error fetching users by role:', error);
       throw error;
@@ -191,16 +145,8 @@ export class UserService {
         sortDir
       });
 
-      const response = await fetch(`${BASE_URL}/department?${params.toString()}`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.get(`${BASE_URL}/department`, { params: Object.fromEntries(params) });
+      return data;
     } catch (error) {
       console.error('Error fetching users by department:', error);
       throw error;
@@ -219,18 +165,8 @@ export class UserService {
    */
   static async createUser(userData) {
     try {
-      const response = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(userData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.post(BASE_URL, userData);
+      return data;
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;
@@ -242,18 +178,8 @@ export class UserService {
    */
   static async updateUser(userId, userData) {
     try {
-      const response = await fetch(`${BASE_URL}/${userId}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(userData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.put(`${BASE_URL}/${userId}`, userData);
+      return data;
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;
@@ -265,17 +191,8 @@ export class UserService {
    */
   static async deleteUser(userId) {
     try {
-      const response = await fetch(`${BASE_URL}/${userId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.delete(`${BASE_URL}/${userId}`);
+      return data;
     } catch (error) {
       console.error('Error deleting user:', error);
       throw error;
@@ -287,18 +204,8 @@ export class UserService {
    */
   static async toggleUserStatus(userId, enabled) {
     try {
-      const response = await fetch(`${BASE_URL}/${userId}/status`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ enabled })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.put(`${BASE_URL}/${userId}/status`, { enabled });
+      return data;
     } catch (error) {
       console.error('Error toggling user status:', error);
       throw error;
@@ -310,16 +217,8 @@ export class UserService {
    */
   static async getCurrentUserProfile() {
     try {
-      const response = await fetch(`${BASE_URL}/profile`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.get(`${BASE_URL}/profile`);
+      return data;
     } catch (error) {
       console.error('Error fetching current user profile:', error);
       throw error;
@@ -331,18 +230,8 @@ export class UserService {
    */
   static async updateCurrentUserProfile(profileData) {
     try {
-      const response = await fetch(`${BASE_URL}/profile`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(profileData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.put(`${BASE_URL}/profile`, profileData);
+      return data;
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw error;
@@ -354,18 +243,8 @@ export class UserService {
    */
   static async changePassword(passwordData) {
     try {
-      const response = await fetch(`${BASE_URL}/change-password`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(passwordData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const { data } = await API.put(`${BASE_URL}/change-password`, passwordData);
+      return data;
     } catch (error) {
       console.error('Error changing password:', error);
       throw error;
