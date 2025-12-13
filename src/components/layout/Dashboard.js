@@ -481,7 +481,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-800">Welcome, {currentUser?.email || 'User'}!</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Welcome, {currentUser?.firstName || 'User'}!</h1>
         <p className="text-gray-600">Comprehensive Business Dashboard - Base Currency: USD</p>
       </div>
 
