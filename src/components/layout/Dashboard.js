@@ -181,9 +181,17 @@ const Dashboard = () => {
       const totalRevenue = (Array.isArray(transactions) ? transactions : [])
         .filter(t => Number(t?.entree) > 0)
         .reduce((sum, t) => sum + (Number(t?.entree) || 0), 0);
-      const totalExpenses = (Array.isArray(transactions) ? transactions : [])
+      // Prefer backend total PO expenses if available
+      let totalExpenses = (Array.isArray(transactions) ? transactions : [])
         .filter(t => Number(t?.sortie) > 0)
         .reduce((sum, t) => sum + (Number(t?.sortie) || 0), 0);
+      try {
+        const { data: poExpensesTotal } = await API.get('po/v1/expenses/total');
+        const n = Number(poExpensesTotal);
+        if (!Number.isNaN(n) && n >= 0) {
+          totalExpenses = n;
+        }
+      } catch (_) { /* fallback to transaction-based sum */ }
 
       // Calculate inventory value
       const inventoryValue = (Array.isArray(inventaire) ? inventaire : []).reduce((sum, item) => sum + (Number(item?.montantTotalUSD) || 0), 0);
