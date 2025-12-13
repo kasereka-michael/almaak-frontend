@@ -79,7 +79,7 @@ export default function Profile() {
     setError('');
     setMessage('');
     try {
-      const { data } = await API.post('/api/roles', { name: newRole });
+      const { data } = await API.post('roles', { name: newRole });
       setMessage(`Role ${data?.name || newRole} created`);
       setNewRole('');
     } catch (e) {
@@ -91,71 +91,112 @@ export default function Profile() {
   if (!profile) return <div>No profile</div>;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">My Profile</h1>
-
-      {error && <div className="mb-4 p-3 bg-red-100 text-red-800 rounded">{error}</div>}
-      {message && <div className="mb-4 p-3 bg-green-100 text-green-800 rounded">{message}</div>}
-
-      <div className="bg-white p-6 rounded shadow">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="First Name">
-            <input name="firstName" value={profile.firstName || ''} onChange={onChange} className="w-full border rounded px-3 py-2" />
-          </Field>
-          <Field label="Last Name">
-            <input name="lastName" value={profile.lastName || ''} onChange={onChange} className="w-full border rounded px-3 py-2" />
-          </Field>
-          <Field label="Email">
-            <input name="email" type="email" value={profile.email || ''} onChange={onChange} className="w-full border rounded px-3 py-2" />
-          </Field>
-          <Field label="Username">
-            <input name="username" value={profile.username || ''} onChange={onChange} className="w-full border rounded px-3 py-2" />
-          </Field>
-          <Field label="Phone">
-            <input name="phone" value={profile.phone || ''} onChange={onChange} className="w-full border rounded px-3 py-2" />
-          </Field>
-          <Field label="Department">
-            <input name="department" value={profile.department || ''} onChange={onChange} className="w-full border rounded px-3 py-2" />
-          </Field>
-          <Field label="Position">
-            <input name="position" value={profile.position || ''} onChange={onChange} className="w-full border rounded px-3 py-2" />
-          </Field>
-          <Field label="Bio">
-            <textarea name="bio" value={profile.bio || ''} onChange={onChange} className="w-full border rounded px-3 py-2"></textarea>
-          </Field>
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-800">My Profile</h1>
+          <p className="text-sm text-gray-500">Update your personal information and account details.</p>
         </div>
-        <div className="mt-4">
-          <button onClick={saveProfile} disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
+        <button
+          onClick={saveProfile}
+          disabled={saving}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      </div>
+
+      {error && <div className="p-3 bg-red-100 text-red-800 rounded border border-red-200">{error}</div>}
+      {message && <div className="p-3 bg-green-100 text-green-800 rounded border border-green-200">{message}</div>}
+
+      {/* Profile Card */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-6 md:p-8">
+          {/* Account Section */}
+          <h2 className="text-base font-semibold text-gray-700 mb-4">Account</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+            <Field label="Username">
+              <input name="username" value={profile.username || ''} onChange={onChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </Field>
+            <Field label="Email">
+              <input name="email" type="email" value={profile.email || ''} onChange={onChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </Field>
+            <Field label="First Name">
+              <input name="firstName" value={profile.firstName || ''} onChange={onChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </Field>
+            <Field label="Last Name">
+              <input name="lastName" value={profile.lastName || ''} onChange={onChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </Field>
+          </div>
+
+          {/* Contact & Job Section */}
+          <h2 className="text-base font-semibold text-gray-700 mb-4">Contact & Job</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+            <Field label="Phone">
+              <input name="phone" value={profile.phone || ''} onChange={onChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </Field>
+            <Field label="Department">
+              <input name="department" value={profile.department || ''} onChange={onChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </Field>
+            <Field label="Position">
+              <input name="position" value={profile.position || ''} onChange={onChange} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+            </Field>
+          </div>
+
+          {/* Bio Section */}
+          <h2 className="text-base font-semibold text-gray-700 mb-4">Bio</h2>
+          <div className="grid grid-cols-1 mb-2">
+            <Field label="About you">
+              <textarea name="bio" value={profile.bio || ''} onChange={onChange} className="w-full border border-gray-300 rounded-md px-3 py-2 h-28 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+            </Field>
+          </div>
+
+          {/* Footer Save */}
+          <div className="mt-4 flex justify-end">
+            <button onClick={saveProfile} disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Admin Actions */}
       {isAdmin && (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded shadow">
-            <h2 className="text-lg font-semibold mb-4">Create New User</h2>
-            <Field label="Username">
-              <input value={newUser.username} onChange={e => setNewUser(u => ({ ...u, username: e.target.value }))} className="w-full border rounded px-3 py-2" />
-            </Field>
-            <Field label="Email">
-              <input type="email" value={newUser.email} onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))} className="w-full border rounded px-3 py-2" />
-            </Field>
-            <Field label="Password">
-              <input type="password" value={newUser.password} onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))} className="w-full border rounded px-3 py-2" />
-            </Field>
-            <Field label="Roles (comma separated)">
-              <input value={(newUser.roles || []).join(',')} onChange={e => setNewUser(u => ({ ...u, roles: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))} className="w-full border rounded px-3 py-2" />
-            </Field>
-            <button onClick={createUser} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Create User</button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
+            <h2 className="text-lg font-semibold text-gray-800">Create New User</h2>
+            <p className="text-sm text-gray-500 mb-4">Quickly provision a user account and assign roles.</p>
+            <div className="grid grid-cols-1 gap-4">
+              <Field label="Username">
+                <input value={newUser.username} onChange={e => setNewUser(u => ({ ...u, username: e.target.value }))} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              </Field>
+              <Field label="Email">
+                <input type="email" value={newUser.email} onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              </Field>
+              <Field label="Password">
+                <input type="password" value={newUser.password} onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              </Field>
+              <Field label="Roles (comma separated)">
+                <input value={(newUser.roles || []).join(',')} onChange={e => setNewUser(u => ({ ...u, roles: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              </Field>
+              <div className="flex justify-end">
+                <button onClick={createUser} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Create User</button>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-white p-6 rounded shadow">
-            <h2 className="text-lg font-semibold mb-4">Create Role</h2>
-            <Field label="Role Name">
-              <input value={newRole} onChange={e => setNewRole(e.target.value)} className="w-full border rounded px-3 py-2" placeholder="e.g. ADMIN" />
-            </Field>
-            <button onClick={createRole} className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Create Role</button>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
+            <h2 className="text-lg font-semibold text-gray-800">Create Role</h2>
+            <p className="text-sm text-gray-500 mb-4">Define a new role to control access.</p>
+            <div className="grid grid-cols-1 gap-4">
+              <Field label="Role Name">
+                <input value={newRole} onChange={e => setNewRole(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. ADMIN" />
+              </Field>
+              <div className="flex justify-end">
+                <button onClick={createRole} className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Create Role</button>
+              </div>
+            </div>
           </div>
         </div>
       )}

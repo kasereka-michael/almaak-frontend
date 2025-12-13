@@ -1,6 +1,6 @@
 import API from './apiConfig';
 
-const BASE_URL = '/api/users';
+const BASE_URL = 'users';
 
 /**
  * User Service for managing users
