@@ -24,6 +24,7 @@ import POList from './components/po/POList';
 import POForm from './components/po/POForm';
 import TrashAlert from './components/trash/TrashAlert';
 import Profile from './pages/Profile';
+import BusinessReport from './components/reports/BusinessReport';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => <PrivateRoute>{children}</PrivateRoute>;
@@ -92,6 +93,9 @@ function App() {
 
       {/* Profile */}
       <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
+
+      {/* Reports */}
+      <Route path="/reports/business" element={<ProtectedRoute><AppLayout><BusinessReport /></AppLayout></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

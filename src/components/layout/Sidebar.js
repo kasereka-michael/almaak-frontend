@@ -57,6 +57,13 @@ const Sidebar = () => {
         { name: 'Products', path: '/products', roles: [] },
       ],
     },
+    {
+      group: 'Reports',
+      icon: '🧾',
+      items: [
+        { name: 'Business Report', path: '/reports/business', roles: [] },
+      ],
+    },
   ];
 
   return (
