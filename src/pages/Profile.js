@@ -19,9 +19,10 @@ export default function Profile() {
   const [profile, setProfile] = useState(null);
 
   const isAdmin = useMemo(() => {
-    const roles = authUser?.roles || [];
-    return Array.isArray(roles) && roles.includes('ADMIN');
-  }, [authUser]);
+    const roles = (profile?.roles || authUser?.roles || []);
+    if (!Array.isArray(roles)) return false;
+    return roles.map(String).some(r => r === 'ADMIN' || r === 'ROLE_ADMIN');
+  }, [profile, authUser]);
 
   useEffect(() => {
     let mounted = true;
@@ -97,6 +98,29 @@ export default function Profile() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">My Profile</h1>
           <p className="text-sm text-gray-500">Update your personal information and account details.</p>
+          {/* Roles display */}
+          <div className="mt-2">
+            <span className="text-sm font-medium text-gray-700 mr-2">Your Roles:</span>
+            {(profile?.roles || authUser?.roles || []).map((role, idx) => {
+              const r = String(role).replace(/^ROLE_/, '');
+              const colorMap = {
+                ADMIN: 'bg-red-100 text-red-800',
+                MANAGER: 'bg-blue-100 text-blue-800',
+                HR: 'bg-green-100 text-green-800',
+                FINANCE: 'bg-yellow-100 text-yellow-800',
+                SALES: 'bg-pink-100 text-pink-800',
+                TECHNICIAN: 'bg-indigo-100 text-indigo-800',
+                PROJECT_MANAGER: 'bg-cyan-100 text-cyan-800',
+                USER: 'bg-gray-100 text-gray-800'
+              };
+              const classes = colorMap[r] || 'bg-gray-100 text-gray-800';
+              return (
+                <span key={idx} className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium mr-2 mb-2 ${classes}`}>
+                  {r}
+                </span>
+              );
+            })}
+          </div>
         </div>
         <button
           onClick={saveProfile}
