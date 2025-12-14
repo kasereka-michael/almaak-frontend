@@ -19,6 +19,24 @@ export default function Profile() {
   const [message, setMessage] = useState('');
   const [profile, setProfile] = useState(null);
 
+  // Activity Log state (must be before any returns)
+  const [logs, setLogs] = useState({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+  const [logFilters, setLogFilters] = useState({ action: '', from: '', to: '' });
+  const [logLoading, setLogLoading] = useState(false);
+
+  const loadLogs = async (page = 0) => {
+    try {
+      setLogLoading(true);
+      const token = localStorage.getItem('token');
+      const data = await fetchAuditLogs({ username: profile?.username, action: logFilters.action || undefined, from: logFilters.from || undefined, to: logFilters.to || undefined, page, size: logs.size, token });
+      setLogs(data);
+    } catch (e) {
+      // ignore UI errors here to avoid blocking profile
+    } finally {
+      setLogLoading(false);
+    }
+  };
+
   const isAdmin = useMemo(() => {
     const roles = (profile?.roles || authUser?.roles || []);
     if (!Array.isArray(roles)) return false;
