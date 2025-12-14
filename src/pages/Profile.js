@@ -118,28 +118,6 @@ export default function Profile() {
   if (loading) return <div>Loading...</div>;
   if (!profile) return <div>No profile</div>;
 
-  // Activity Log state
-  const [logs, setLogs] = useState({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
-  const [logFilters, setLogFilters] = useState({ action: '', from: '', to: '' });
-  const [logLoading, setLogLoading] = useState(false);
-
-  const loadLogs = async (page = 0) => {
-    try {
-      setLogLoading(true);
-      const token = localStorage.getItem('token');
-      const data = await fetchAuditLogs({ username: profile?.username, action: logFilters.action || undefined, from: logFilters.from || undefined, to: logFilters.to || undefined, page, size: logs.size, token });
-      setLogs(data);
-    } catch (e) {
-      // ignore UI errors here to avoid blocking profile
-    } finally {
-      setLogLoading(false);
-    }
-  };
-
-  useEffect(() => { if (profile?.username) loadLogs(0); // load on first profile load
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile?.username]);
-
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
