@@ -482,7 +482,7 @@ const Dashboard = () => {
       <div>
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-800">Welcome, {currentUser?.firstName || 'User'}!</h1>
-        <p className="text-gray-600">Comprehensive Business Dashboard - Base Currency: USD</p>
+        <p className="text-gray-600">Comprehensive Almaak Dashboard - Base Currency: USD</p>
       </div>
 
       {/* Financial Overview - visible to everyone */}

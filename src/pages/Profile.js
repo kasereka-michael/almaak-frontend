@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import UserService from '../services/userService';
 import API from '../services/apiConfig';
+import { fetchAuditLogs } from '../services/auditApi';
 
 const Field = ({ label, children }) => (
   <div className="mb-4">
@@ -99,6 +100,28 @@ export default function Profile() {
   if (loading) return <div>Loading...</div>;
   if (!profile) return <div>No profile</div>;
 
+  // Activity Log state
+  const [logs, setLogs] = useState({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20 });
+  const [logFilters, setLogFilters] = useState({ action: '', from: '', to: '' });
+  const [logLoading, setLogLoading] = useState(false);
+
+  const loadLogs = async (page = 0) => {
+    try {
+      setLogLoading(true);
+      const token = localStorage.getItem('token');
+      const data = await fetchAuditLogs({ username: profile?.username, action: logFilters.action || undefined, from: logFilters.from || undefined, to: logFilters.to || undefined, page, size: logs.size, token });
+      setLogs(data);
+    } catch (e) {
+      // ignore UI errors here to avoid blocking profile
+    } finally {
+      setLogLoading(false);
+    }
+  };
+
+  useEffect(() => { if (profile?.username) loadLogs(0); // load on first profile load
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.username]);
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
@@ -189,6 +212,71 @@ export default function Profile() {
             <button onClick={saveProfile} disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Log */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 md:p-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">Activity Log</h2>
+          <div className="flex items-center gap-2">
+            <select value={logFilters.action} onChange={e => setLogFilters(f => ({ ...f, action: e.target.value }))} className="border border-gray-300 rounded px-2 py-1 text-sm">
+              <option value="">All actions</option>
+              <option value="CREATE">CREATE</option>
+              <option value="UPDATE">UPDATE</option>
+              <option value="DELETE">DELETE</option>
+              <option value="LOGIN">LOGIN</option>
+              <option value="LOGOUT">LOGOUT</option>
+            </select>
+            <input type="date" value={logFilters.from} onChange={e => setLogFilters(f => ({ ...f, from: e.target.value }))} className="border border-gray-300 rounded px-2 py-1 text-sm"/>
+            <input type="date" value={logFilters.to} onChange={e => setLogFilters(f => ({ ...f, to: e.target.value }))} className="border border-gray-300 rounded px-2 py-1 text-sm"/>
+            <button onClick={() => loadLogs(0)} className="px-3 py-1 bg-blue-600 text-white rounded text-sm">Filter</button>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entity</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entity ID</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Path</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Success</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {logLoading ? (
+                <tr><td className="px-3 py-2" colSpan="8">Loading logs...</td></tr>
+              ) : (logs.content || []).length === 0 ? (
+                <tr><td className="px-3 py-2" colSpan="8">No activity found.</td></tr>
+              ) : (
+                (logs.content || []).map((row) => (
+                  <tr key={row.id}>
+                    <td className="px-3 py-2 text-sm text-gray-700">{new Date(row.createdAt).toLocaleString()}</td>
+                    <td className="px-3 py-2 text-sm text-gray-700">{row.action}</td>
+                    <td className="px-3 py-2 text-sm text-gray-700">{row.entity || '-'}</td>
+                    <td className="px-3 py-2 text-sm text-gray-700">{row.entityId || '-'}</td>
+                    <td className="px-3 py-2 text-sm text-gray-700">{row.path || '-'}</td>
+                    <td className="px-3 py-2 text-sm text-gray-700">{row.ip || '-'}</td>
+                    <td className="px-3 py-2 text-sm text-gray-700">{row.success ? 'Yes' : 'No'}</td>
+                    <td className="px-3 py-2 text-xs text-gray-600 whitespace-pre-wrap break-words max-w-xs">{row.details || '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex items-center justify-between mt-4">
+          <div className="text-sm text-gray-500">
+            Page {Number(logs.number) + 1} of {logs.totalPages || 1}
+          </div>
+          <div className="space-x-2">
+            <button disabled={logs.number <= 0} onClick={() => loadLogs(logs.number - 1)} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+            <button disabled={logs.number >= (logs.totalPages - 1)} onClick={() => loadLogs(logs.number + 1)} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
           </div>
         </div>
       </div>
