@@ -60,7 +60,7 @@ export class TrashService {
    */
   static async permanentlyDeleteItem(trashId) {
     try {
-      await API.delete(`${BASE_URL}/items/${trashId}`);
+      await API.delete(`${BASE_URL}/items/${trashId}`, { params: { admin: true } });
       return true;
     } catch (error) {
       if (error.response && error.response.status === 403) {
