@@ -17,22 +17,29 @@ const SystemLogs = () => {
   const load = async () => {
     try {
       setLoading(true);
+      const toIsoOrUndef = (d, endOfDay = false) => {
+        if (!d) return undefined;
+        try {
+          const iso = endOfDay ? new Date(`${d}T23:59:59Z`).toISOString() : new Date(`${d}T00:00:00Z`).toISOString();
+          return iso;
+        } catch (_) { return undefined; }
+      };
       const params = {
         page,
         size,
-        search: search || undefined,
-        user: user || undefined,
+        username: user || undefined,
         action: action || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        from: toIsoOrUndef(startDate, false),
+        to: toIsoOrUndef(endDate, true),
       };
-      const { data } = await API.get('/audit/v1/logs', { params });
-      const items = Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+      const { data } = await API.get('/audit/logs', { params });
+      // Backend returns Spring Page<AuditLog>
+      const items = Array.isArray(data?.content) ? data.content : (Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []));
       setLogs(items);
       setPagination({
-        currentPage: data?.currentPage ?? page,
+        currentPage: (typeof data?.number === 'number') ? data.number : (data?.currentPage ?? page),
         totalPages: data?.totalPages ?? 1,
-        totalItems: data?.totalItems ?? items.length,
+        totalItems: data?.totalElements ?? data?.totalItems ?? items.length,
       });
       setError('');
     } catch (e) {
