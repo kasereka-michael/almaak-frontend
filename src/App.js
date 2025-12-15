@@ -32,6 +32,7 @@ import DeliveryNoteList from './components/delivery/DeliveryNoteList';
 import DeliveryNoteForm from './components/delivery/DeliveryNoteForm';
 import RolesList from './components/roles/RolesList';
 import RoleForm from './components/roles/RoleForm';
+import SystemLogs from './components/audit/SystemLogs';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => <PrivateRoute>{children}</PrivateRoute>;
@@ -117,6 +118,9 @@ function App() {
       <Route path="/roles" element={<ProtectedRoute><AppLayout><RolesList /></AppLayout></ProtectedRoute>} />
       <Route path="/roles/add" element={<ProtectedRoute><AppLayout><RoleForm /></AppLayout></ProtectedRoute>} />
       <Route path="/roles/edit/:id" element={<ProtectedRoute><AppLayout><RoleForm /></AppLayout></ProtectedRoute>} />
+
+      {/* System Logs */}
+      <Route path="/logs" element={<ProtectedRoute><AppLayout><SystemLogs /></AppLayout></ProtectedRoute>} />
 
       {/* Trash Management */}
       <Route path="/trash" element={<ProtectedRoute><AppLayout><TrashManagement /></AppLayout></ProtectedRoute>} />
