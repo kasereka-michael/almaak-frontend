@@ -24,10 +24,14 @@ import POList from './components/po/POList';
 import POForm from './components/po/POForm';
 import TrashAlert from './components/trash/TrashAlert';
 import Profile from './pages/Profile';
+import UsersList from './components/users/UsersList';
+import UserForm from './components/users/UserForm';
 import BusinessReport from './components/reports/BusinessReport';
 import TrashManagement from './components/trash/TrashManagement';
 import DeliveryNoteList from './components/delivery/DeliveryNoteList';
 import DeliveryNoteForm from './components/delivery/DeliveryNoteForm';
+import RolesList from './components/roles/RolesList';
+import RoleForm from './components/roles/RoleForm';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => <PrivateRoute>{children}</PrivateRoute>;
@@ -99,11 +103,20 @@ function App() {
       <Route path="/delivery-notes/add" element={<ProtectedRoute><AppLayout><DeliveryNoteForm /></AppLayout></ProtectedRoute>} />
       <Route path="/delivery-notes/edit/:id" element={<ProtectedRoute><AppLayout><DeliveryNoteForm /></AppLayout></ProtectedRoute>} />
 
-      {/* Profile */}
-      <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
+      {/* Users Management */}
+      <Route path="/users" element={<ProtectedRoute><AppLayout><UsersList /></AppLayout></ProtectedRoute>} />
+      <Route path="/users/edit/:id" element={<ProtectedRoute><AppLayout><UserForm /></AppLayout></ProtectedRoute>} />
+
+      {/* Profile redirect to Users */}
+      <Route path="/profile" element={<Navigate to="/users" replace />} />
 
       {/* Reports */}
       <Route path="/reports/business" element={<ProtectedRoute><AppLayout><BusinessReport /></AppLayout></ProtectedRoute>} />
+
+      {/* Roles Management */}
+      <Route path="/roles" element={<ProtectedRoute><AppLayout><RolesList /></AppLayout></ProtectedRoute>} />
+      <Route path="/roles/add" element={<ProtectedRoute><AppLayout><RoleForm /></AppLayout></ProtectedRoute>} />
+      <Route path="/roles/edit/:id" element={<ProtectedRoute><AppLayout><RoleForm /></AppLayout></ProtectedRoute>} />
 
       {/* Trash Management */}
       <Route path="/trash" element={<ProtectedRoute><AppLayout><TrashManagement /></AppLayout></ProtectedRoute>} />
