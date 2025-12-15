@@ -263,7 +263,7 @@ export const updateCustomer = async (id, customerData) => {
 };
 
 export const deleteCustomer = async (id) => {
-  const response = await API.delete(`/customers/${id}`);
+  const response = await API.delete(`/customer/v1/delete/${id}`);
   return response.data;
 };
 

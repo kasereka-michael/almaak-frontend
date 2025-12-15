@@ -25,6 +25,9 @@ import POForm from './components/po/POForm';
 import TrashAlert from './components/trash/TrashAlert';
 import Profile from './pages/Profile';
 import BusinessReport from './components/reports/BusinessReport';
+import TrashManagement from './components/trash/TrashManagement';
+import DeliveryNoteList from './components/delivery/DeliveryNoteList';
+import DeliveryNoteForm from './components/delivery/DeliveryNoteForm';
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }) => <PrivateRoute>{children}</PrivateRoute>;
@@ -91,11 +94,19 @@ function App() {
       <Route path="/pos/add" element={<ProtectedRoute><AppLayout><POForm /></AppLayout></ProtectedRoute>} />
       <Route path="/pos/edit/:id" element={<ProtectedRoute><AppLayout><POForm /></AppLayout></ProtectedRoute>} />
 
+      {/* Delivery Notes */}
+      <Route path="/delivery-notes" element={<ProtectedRoute><AppLayout><DeliveryNoteList /></AppLayout></ProtectedRoute>} />
+      <Route path="/delivery-notes/add" element={<ProtectedRoute><AppLayout><DeliveryNoteForm /></AppLayout></ProtectedRoute>} />
+      <Route path="/delivery-notes/edit/:id" element={<ProtectedRoute><AppLayout><DeliveryNoteForm /></AppLayout></ProtectedRoute>} />
+
       {/* Profile */}
       <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
 
       {/* Reports */}
       <Route path="/reports/business" element={<ProtectedRoute><AppLayout><BusinessReport /></AppLayout></ProtectedRoute>} />
+
+      {/* Trash Management */}
+      <Route path="/trash" element={<ProtectedRoute><AppLayout><TrashManagement /></AppLayout></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
